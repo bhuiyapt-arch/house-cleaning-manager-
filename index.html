@@ -6,17 +6,20 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Our Home Cleaning</title>
 <style>
-body{font-family:Arial,sans-serif;background:#f2f7f4;color:#18372b;margin:0;padding:20px}
+body{font-family:Arial,sans-serif;background:#f2f7f4;color:#18372b;margin:0;padding:16px}
 main{max-width:500px;margin:auto}
-section{background:white;padding:18px;margin:14px 0;border-radius:14px}
-button{background:#176b54;color:white;border:0;padding:12px;border-radius:9px;margin:5px 0}
+section{background:white;padding:18px;margin:14px 0;border-radius:14px;box-shadow:0 2px 8px #0001}
+button{background:#176b54;color:white;border:0;padding:12px;border-radius:9px;margin:5px 0;cursor:pointer}
 input{padding:10px;max-width:90%;margin:5px}
+a{color:#176b54;font-weight:bold}
+.task{display:block;margin:12px 0}
 </style>
 </head>
 <body>
 <main>
 <h1>🏡 Our Home Cleaning</h1>
 <p>Four housemates • One cleaner every week</p>
+
 <section>
 <h2>This Week's Cleaner</h2>
 <h3 id="current">M</h3>
@@ -24,42 +27,69 @@ input{padding:10px;max-width:90%;margin:5px}
 <button onclick="done()">Mark as DONE ✓</button>
 <p id="status">Status: Pending</p>
 </section>
+
 <section>
 <h2>Housemates</h2>
 <p>Edit the four names:</p>
 <div id="names"></div>
 <button onclick="saveNames()">Save Names</button>
 </section>
+
 <section>
 <h2>Cleaning Checklist</h2>
 <div id="tasks"></div>
 <button onclick="resetTasks()">Reset Checklist</button>
 </section>
+
 <section>
 <h2>WhatsApp Reminder</h2>
 <p id="message"></p>
 <button onclick="copyMessage()">Copy Reminder</button>
-<a id="wa" href="https://chat.whatsapp.com/C22SA2cVJ5AIIFmDoSkrim?s=cl&p=i&ilr=4&iam=0" target="_blank">Open WhatsApp</a>
+<p><a id="wa" href="https://chat.whatsapp.com/C22SA2cVJ5AIIFmDoSkrim?s=sh&amp;p=i&amp;ilr=4&amp;iam=0" target="_blank" rel="noopener">Open WhatsApp Group</a></p>
 </section>
 </main>
+
 <script>
 let names=JSON.parse(localStorage.getItem("names")||'["M","R","A","S"]');
 let start=localStorage.getItem("start")||new Date().toISOString().slice(0,10);
 let tasks=["Clean kitchen","Clean bathroom","Vacuum shared floors","Take out rubbish","Tidy living area"];
 let day=Math.max(0,Math.floor((new Date(new Date().toDateString())-new Date(start+"T00:00:00"))/86400000));
 let week=Math.floor(day/7),idx=week%4;
+
 function render(){
-document.getElementById("current").textContent=names[idx];
-document.getElementById("next").textContent="Next cleaner: "+names[(idx+1)%4];
-document.getElementById("message").textContent="Hi "+names[idx]+"! It's your turn to clean the house this week. Please clean the kitchen, bathroom and shared areas. Thank you!";
-document.getElementById("names").innerHTML=names.map((n,i)=>'<p>Person '+(i+1)+' <input id="n'+i+'" value="'+n.replace(/"/g,"&quot;")+'"></p>').join("");
-document.getElementById("tasks").innerHTML=tasks.map((t,i)=>'<p><label><input type="checkbox" id="t'+i+'"> '+t+'</label></p>').join("");
-document.getElementById("status").textContent=localStorage.getItem("done"+week)==="yes"?"Status: Done ✓":"Status: Pending";
+ document.getElementById("current").textContent=names[idx];
+ document.getElementById("next").textContent="Next cleaner: "+names[(idx+1)%4];
+ document.getElementById("message").textContent="Hi "+names[idx]+"! It's your turn to clean the house this week. Please clean the kitchen, bathroom and shared areas. Thank you!";
+ document.getElementById("names").innerHTML=names.map((n,i)=>'<p>Person '+(i+1)+' <input id="n'+i+'" value="'+n.replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;")+'"></p>').join("");
+ document.getElementById("tasks").innerHTML=tasks.map((t,i)=>'<label class="task"><input type="checkbox" id="t'+i+'"> '+t+'</label>').join("");
+ document.getElementById("status").textContent=localStorage.getItem("done"+week)==="yes"?"Status: Done ✓":"Status: Pending";
 }
-function saveNames(){names=names.map((n,i)=>document.getElementById("n"+i).value.trim()||n);localStorage.setItem("names",JSON.stringify(names));render();}
-function done(){localStorage.setItem("done"+week,"yes");document.getElementById("status").textContent="Status: Done ✓";}
-function resetTasks(){tasks.forEach((t,i)=>document.getElementById("t"+i).checked=false);}
-async function copyMessage(){try{await navigator.clipboard.writeText(document.getElementById("message").textContent);alert("Reminder copied! Paste it into WhatsApp.");}catch(e){alert(document.getElementById("message").textContent);}}
+
+function saveNames(){
+ names=names.map((n,i)=>document.getElementById("n"+i).value.trim()||n);
+ localStorage.setItem("names",JSON.stringify(names));
+ render();
+}
+
+function done(){
+ localStorage.setItem("done"+week,"yes");
+ document.getElementById("status").textContent="Status: Done ✓";
+}
+
+function resetTasks(){
+ tasks.forEach((t,i)=>document.getElementById("t"+i).checked=false);
+}
+
+async function copyMessage(){
+ const message=document.getElementById("message").textContent;
+ try{
+  await navigator.clipboard.writeText(message);
+  alert("Reminder copied! Paste it into WhatsApp.");
+ }catch(e){
+  alert(message);
+ }
+}
+
 render();
 </script>
 </body>
